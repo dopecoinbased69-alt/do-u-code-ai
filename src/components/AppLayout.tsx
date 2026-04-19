@@ -1,6 +1,7 @@
 import { Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import AppSidebar from './AppSidebar';
+import ReactorBackground from './ReactorBackground';
 
 export default function AppLayout() {
   const { user, loading } = useAuth();
@@ -16,11 +17,14 @@ export default function AppLayout() {
   if (!user) return <Navigate to="/" replace />;
 
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
-      <AppSidebar />
-      <main className="flex-1 overflow-auto">
-        <Outlet />
-      </main>
+    <div className="relative h-screen bg-background overflow-hidden">
+      <ReactorBackground />
+      <div className="relative z-10 flex h-full overflow-hidden">
+        <AppSidebar />
+        <main className="flex-1 overflow-auto">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

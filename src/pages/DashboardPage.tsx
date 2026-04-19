@@ -47,13 +47,6 @@ export default function DashboardPage() {
 
   return (
     <div className="p-6 lg:p-8 space-y-8">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="text-3xl font-bold">
-          Welcome back, <span className="text-gradient">{user?.email?.split('@')[0]}</span>
-        </h1>
-        <p className="text-muted-foreground mt-1">Your professional HTML code workspace</p>
-      </motion.div>
-
       {/* Quick Actions */}
       <div className="flex flex-wrap gap-3">
         <input ref={fileInputRef} type="file" accept=".html,.htm" onChange={handleFileChange} className="hidden" />
