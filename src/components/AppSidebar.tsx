@@ -37,8 +37,8 @@ export default function AppSidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm',
                 isActive
-                  ? 'bg-primary/10 text-primary glow-border'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  ? 'bg-primary/15 text-primary border border-primary/30 glow-border'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent'
               )
             }
           >
