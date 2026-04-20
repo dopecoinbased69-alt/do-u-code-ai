@@ -48,7 +48,7 @@ export default function AppSidebar() {
         ))}
       </nav>
 
-      <div className="p-2 border-t border-border">
+      <div className="p-2 border-t border-white/10">
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all w-full"

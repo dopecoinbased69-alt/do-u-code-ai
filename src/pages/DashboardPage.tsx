@@ -72,7 +72,7 @@ export default function DashboardPage() {
           >
             <button
               onClick={() => navigate(to)}
-              className="w-full text-left p-6 rounded-xl border border-border bg-card hover:glow-border transition-all group"
+              className="w-full text-left p-6 rounded-xl glass hover:glow-border hover:border-primary/40 transition-all group"
             >
               <Icon className="h-8 w-8 text-primary mb-3 group-hover:scale-110 transition-transform" />
               <h3 className="font-semibold text-lg">{label}</h3>
@@ -90,7 +90,7 @@ export default function DashboardPage() {
           { icon: Cpu, label: 'AI Model', value: 'Gemini' },
           { icon: Database, label: 'Storage', value: 'Active' },
         ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="p-4 rounded-lg border border-border bg-card/50">
+          <div key={label} className="p-4 rounded-lg glass">
             <Icon className="h-5 w-5 text-muted-foreground mb-2" />
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className="font-semibold text-primary">{value}</p>
