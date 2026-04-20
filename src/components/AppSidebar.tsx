@@ -20,8 +20,8 @@ export default function AppSidebar() {
   };
 
   return (
-    <aside className="w-16 lg:w-56 h-screen bg-card border-r border-border flex flex-col shrink-0">
-      <div className="p-3 lg:p-4 flex items-center gap-2 border-b border-border">
+    <aside className="w-16 lg:w-56 h-screen glass border-r border-white/10 flex flex-col shrink-0">
+      <div className="p-3 lg:p-4 flex items-center gap-2 border-b border-white/10">
         <div className="p-1.5 rounded-md bg-primary/10">
           <Zap className="h-5 w-5 text-primary" />
         </div>
@@ -37,8 +37,8 @@ export default function AppSidebar() {
               cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm',
                 isActive
-                  ? 'bg-primary/10 text-primary glow-border'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
+                  ? 'bg-primary/15 text-primary border border-primary/30 glow-border'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent'
               )
             }
           >
@@ -48,7 +48,7 @@ export default function AppSidebar() {
         ))}
       </nav>
 
-      <div className="p-2 border-t border-border">
+      <div className="p-2 border-t border-white/10">
         <button
           onClick={handleSignOut}
           className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all w-full"
