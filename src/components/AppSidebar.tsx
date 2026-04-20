@@ -20,8 +20,8 @@ export default function AppSidebar() {
   };
 
   return (
-    <aside className="w-16 lg:w-56 h-screen bg-card border-r border-border flex flex-col shrink-0">
-      <div className="p-3 lg:p-4 flex items-center gap-2 border-b border-border">
+    <aside className="w-16 lg:w-56 h-screen glass border-r border-white/10 flex flex-col shrink-0">
+      <div className="p-3 lg:p-4 flex items-center gap-2 border-b border-white/10">
         <div className="p-1.5 rounded-md bg-primary/10">
           <Zap className="h-5 w-5 text-primary" />
         </div>
