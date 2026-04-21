@@ -10,6 +10,7 @@ import { Play, Sparkles, Copy, RotateCcw, Eye, Loader2, ChevronUp, ChevronDown }
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useAIProvider } from '@/hooks/useAIProvider';
 
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -81,6 +82,8 @@ export default function IDEPage() {
   const [promptOpen, setPromptOpen] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { preferred, providers } = useAIProvider();
+  const preferredLabel = providers.find((p) => p.id === preferred)?.label ?? preferred;
 
   useEffect(() => {
     const saved = localStorage.getItem('codeforge_editor_content');
@@ -96,7 +99,7 @@ export default function IDEPage() {
     setAiLoading(true);
     try {
       const resp = await supabase.functions.invoke('ai-code-gen', {
-        body: { prompt: prompt.trim(), currentCode: code },
+        body: { prompt: prompt.trim(), currentCode: code, provider: preferred },
       });
       if (resp.error) throw resp.error;
       const data = resp.data;
@@ -111,7 +114,7 @@ export default function IDEPage() {
     } finally {
       setAiLoading(false);
     }
-  }, [prompt, code, toast]);
+  }, [prompt, code, toast, preferred]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -170,6 +173,9 @@ export default function IDEPage() {
         </button>
         {promptOpen && (
           <div className="p-3 pt-0 flex gap-2">
+            <div className="absolute -mt-7 ml-7 text-[10px] text-muted-foreground/70 pointer-events-none">
+              via {preferredLabel}
+            </div>
             <Textarea
               placeholder="Describe what you want to build... (e.g., 'Create a 3D rotating cube with Three.js and ambient lighting')"
               value={prompt}
