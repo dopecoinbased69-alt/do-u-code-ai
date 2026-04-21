@@ -4,12 +4,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
+import { AIProviderProvider } from "@/hooks/useAIProvider";
 import AuthPage from "./pages/AuthPage";
 import DashboardPage from "./pages/DashboardPage";
 import IDEPage from "./pages/IDEPage";
 import PreviewPage from "./pages/PreviewPage";
 import VaultPage from "./pages/VaultPage";
 import GamePage from "./pages/GamePage";
+import SettingsPage from "./pages/SettingsPage";
 import AppLayout from "./components/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -22,17 +24,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <Routes>
-            <Route path="/" element={<AuthPage />} />
-            <Route element={<AppLayout />}>
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/ide" element={<IDEPage />} />
-              <Route path="/preview" element={<PreviewPage />} />
-              <Route path="/vault" element={<VaultPage />} />
-              <Route path="/game" element={<GamePage />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AIProviderProvider>
+            <Routes>
+              <Route path="/" element={<AuthPage />} />
+              <Route element={<AppLayout />}>
+                <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/ide" element={<IDEPage />} />
+                <Route path="/preview" element={<PreviewPage />} />
+                <Route path="/vault" element={<VaultPage />} />
+                <Route path="/game" element={<GamePage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AIProviderProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
