@@ -9,6 +9,7 @@ import DashboardPage from "./pages/DashboardPage";
 import IDEPage from "./pages/IDEPage";
 import PreviewPage from "./pages/PreviewPage";
 import VaultPage from "./pages/VaultPage";
+import GamePage from "./pages/GamePage";
 import AppLayout from "./components/AppLayout";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/ide" element={<IDEPage />} />
               <Route path="/preview" element={<PreviewPage />} />
               <Route path="/vault" element={<VaultPage />} />
+              <Route path="/game" element={<GamePage />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
