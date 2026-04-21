@@ -33,10 +33,13 @@ export default function PreviewPage() {
         body: { prompt: `Iterate on this code: ${prompt.trim()}`, currentCode: code },
       });
       if (resp.error) throw resp.error;
-      if (resp.data?.code) {
-        setCode(resp.data.code);
-        localStorage.setItem('codeforge_editor_content', resp.data.code);
+      const data = resp.data;
+      if (data?.code) {
+        setCode(data.code);
+        localStorage.setItem('codeforge_editor_content', data.code);
         toast({ title: 'Iterated!', description: 'Preview updated with AI changes' });
+      } else if (data?.error) {
+        toast({ title: 'AI Error', description: data.message || data.error, variant: 'destructive' });
       }
     } catch (err: any) {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
