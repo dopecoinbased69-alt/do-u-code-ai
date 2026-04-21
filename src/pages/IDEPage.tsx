@@ -10,6 +10,7 @@ import { Play, Sparkles, Copy, RotateCcw, Eye, Loader2, ChevronUp, ChevronDown }
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useAIProvider } from '@/hooks/useAIProvider';
 
 const DEFAULT_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -81,6 +82,8 @@ export default function IDEPage() {
   const [promptOpen, setPromptOpen] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { preferred, providers } = useAIProvider();
+  const preferredLabel = providers.find((p) => p.id === preferred)?.label ?? preferred;
 
   useEffect(() => {
     const saved = localStorage.getItem('codeforge_editor_content');
@@ -96,7 +99,7 @@ export default function IDEPage() {
     setAiLoading(true);
     try {
       const resp = await supabase.functions.invoke('ai-code-gen', {
-        body: { prompt: prompt.trim(), currentCode: code },
+        body: { prompt: prompt.trim(), currentCode: code, provider: preferred },
       });
       if (resp.error) throw resp.error;
       const data = resp.data;
@@ -111,7 +114,7 @@ export default function IDEPage() {
     } finally {
       setAiLoading(false);
     }
-  }, [prompt, code, toast]);
+  }, [prompt, code, toast, preferred]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
