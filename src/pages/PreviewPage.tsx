@@ -5,6 +5,7 @@ import { Maximize2, Minimize2, RotateCcw, Sparkles, Loader2, Code } from 'lucide
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
+import { useAIProvider } from '@/hooks/useAIProvider';
 
 export default function PreviewPage() {
   const [code, setCode] = useState('');
@@ -14,6 +15,7 @@ export default function PreviewPage() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { preferred } = useAIProvider();
 
   useEffect(() => {
     const saved = localStorage.getItem('codeforge_editor_content') || '';
@@ -30,7 +32,7 @@ export default function PreviewPage() {
     setAiLoading(true);
     try {
       const resp = await supabase.functions.invoke('ai-code-gen', {
-        body: { prompt: `Iterate on this code: ${prompt.trim()}`, currentCode: code },
+        body: { prompt: `Iterate on this code: ${prompt.trim()}`, currentCode: code, provider: preferred },
       });
       if (resp.error) throw resp.error;
       const data = resp.data;
@@ -46,7 +48,7 @@ export default function PreviewPage() {
     } finally {
       setAiLoading(false);
     }
-  }, [prompt, code, toast]);
+  }, [prompt, code, toast, preferred]);
 
   const handleRefresh = () => {
     if (iframeRef.current) {
