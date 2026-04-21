@@ -104,7 +104,7 @@ export default function IDEPage() {
         setCode(data.code);
         toast({ title: 'AI Generated!', description: 'Code updated with AI response' });
       } else if (data?.error) {
-        throw new Error(data.error);
+        toast({ title: 'AI Error', description: data.message || data.error, variant: 'destructive' });
       }
     } catch (err: any) {
       toast({ title: 'AI Error', description: err.message || 'Failed to generate', variant: 'destructive' });
