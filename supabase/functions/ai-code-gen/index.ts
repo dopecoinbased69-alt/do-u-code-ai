@@ -48,18 +48,23 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limited. Please try again in a moment." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "RATE_LIMITED", message: "Rate limited. Please try again in a moment.", fallback: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ error: "AI_CREDITS_EXHAUSTED", message: "AI credits exhausted. Please add funds in Settings → Workspace → Usage.", fallback: true }),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
       const t = await response.text();
       console.error("AI error:", response.status, t);
-      throw new Error("AI gateway error");
+      return new Response(
+        JSON.stringify({ error: "SERVICE_UNAVAILABLE", message: "AI service is temporarily unavailable.", fallback: true }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     const data = await response.json();
@@ -73,8 +78,9 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("ai-code-gen error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({ error: "SERVICE_FAILED", message: e instanceof Error ? e.message : "Unknown error", fallback: true }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   }
 });
