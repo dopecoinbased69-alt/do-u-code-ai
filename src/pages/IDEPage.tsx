@@ -173,6 +173,9 @@ export default function IDEPage() {
         </button>
         {promptOpen && (
           <div className="p-3 pt-0 flex gap-2">
+            <div className="absolute -mt-7 ml-7 text-[10px] text-muted-foreground/70 pointer-events-none">
+              via {preferredLabel}
+            </div>
             <Textarea
               placeholder="Describe what you want to build... (e.g., 'Create a 3D rotating cube with Three.js and ambient lighting')"
               value={prompt}
