@@ -11,75 +11,187 @@ RULES:
 - ALWAYS return a COMPLETE, valid HTML document (<!DOCTYPE html> to </html>)
 - Include all CSS inline in <style> tags
 - Include all JavaScript inline in <script> tags
-- Support Three.js (via CDN: https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)
-- Support Babylon.js (via CDN: https://cdn.babylonjs.com/babylon.js)
-- Support Draco decoder for compressed 3D models
-- Use modern, clean, professional code
-- Make visually stunning designs with smooth animations
+- Support Three.js (CDN: https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js)
+- Support Babylon.js (CDN: https://cdn.babylonjs.com/babylon.js)
+- Use modern, clean, professional code with smooth animations
 - ONLY output the HTML code, nothing else. No markdown, no explanations.
-- If given existing code and asked to iterate, modify that code preserving its structure while adding the requested changes.`;
+- If given existing code and asked to iterate, modify it preserving structure.`;
+
+type ProviderId = "lovable" | "openai" | "anthropic" | "gemini" | "groq";
+
+interface ProviderSpec {
+  id: ProviderId;
+  label: string;
+  envKey: string;
+  defaultModel: string;
+}
+
+const PROVIDERS: ProviderSpec[] = [
+  { id: "lovable", label: "Lovable AI", envKey: "LOVABLE_API_KEY", defaultModel: "google/gemini-3-flash-preview" },
+  { id: "openai", label: "OpenAI", envKey: "OPENAI_API_KEY", defaultModel: "gpt-4o-mini" },
+  { id: "anthropic", label: "Anthropic Claude", envKey: "ANTHROPIC_API_KEY", defaultModel: "claude-3-5-sonnet-latest" },
+  { id: "gemini", label: "Google Gemini", envKey: "GEMINI_API_KEY", defaultModel: "gemini-2.0-flash-exp" },
+  { id: "groq", label: "Groq", envKey: "GROQ_API_KEY", defaultModel: "llama-3.3-70b-versatile" },
+];
+
+function stripFences(s: string): string {
+  return s.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
+}
+
+async function callLovable(key: string, model: string, system: string, user: string): Promise<string> {
+  const r = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+  });
+  if (!r.ok) throw new Error(`lovable:${r.status}:${await r.text()}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || "";
+}
+
+async function callOpenAI(key: string, model: string, system: string, user: string): Promise<string> {
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+  });
+  if (!r.ok) throw new Error(`openai:${r.status}:${await r.text()}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || "";
+}
+
+async function callAnthropic(key: string, model: string, system: string, user: string): Promise<string> {
+  const r = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json" },
+    body: JSON.stringify({ model, max_tokens: 8192, system, messages: [{ role: "user", content: user }] }),
+  });
+  if (!r.ok) throw new Error(`anthropic:${r.status}:${await r.text()}`);
+  const d = await r.json();
+  return d.content?.[0]?.text || "";
+}
+
+async function callGemini(key: string, model: string, system: string, user: string): Promise<string> {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text: user }] }],
+    }),
+  });
+  if (!r.ok) throw new Error(`gemini:${r.status}:${await r.text()}`);
+  const d = await r.json();
+  return d.candidates?.[0]?.content?.parts?.[0]?.text || "";
+}
+
+async function callGroq(key: string, model: string, system: string, user: string): Promise<string> {
+  const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model, messages: [{ role: "system", content: system }, { role: "user", content: user }] }),
+  });
+  if (!r.ok) throw new Error(`groq:${r.status}:${await r.text()}`);
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || "";
+}
+
+async function dispatch(p: ProviderId, key: string, model: string, system: string, user: string): Promise<string> {
+  switch (p) {
+    case "lovable": return callLovable(key, model, system, user);
+    case "openai": return callOpenAI(key, model, system, user);
+    case "anthropic": return callAnthropic(key, model, system, user);
+    case "gemini": return callGemini(key, model, system, user);
+    case "groq": return callGroq(key, model, system, user);
+  }
+}
+
+function availability() {
+  return PROVIDERS.map((p) => ({
+    id: p.id,
+    label: p.label,
+    available: !!Deno.env.get(p.envKey),
+    defaultModel: p.defaultModel,
+  }));
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { prompt, currentCode } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const url = new URL(req.url);
+    if (req.method === "GET" || url.searchParams.get("action") === "status") {
+      return new Response(JSON.stringify({ providers: availability() }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const body = await req.json();
+    if (body?.action === "status") {
+      return new Response(JSON.stringify({ providers: availability() }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { prompt, currentCode, provider, model } = body as {
+      prompt: string; currentCode?: string; provider?: ProviderId; model?: string;
+    };
+    if (!prompt?.trim()) {
+      return new Response(JSON.stringify({ error: "BAD_REQUEST", message: "prompt is required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const userMessage = currentCode
       ? `Current code:\n\`\`\`html\n${currentCode}\n\`\`\`\n\nUser request: ${prompt}`
       : `User request: ${prompt}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: userMessage },
-        ],
-      }),
-    });
+    // Build ordered chain: preferred first, then remaining available providers as fallbacks.
+    const preferred = PROVIDERS.find((p) => p.id === provider);
+    const ordered = [
+      ...(preferred ? [preferred] : []),
+      ...PROVIDERS.filter((p) => p.id !== provider),
+    ].filter((p) => !!Deno.env.get(p.envKey));
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "RATE_LIMITED", message: "Rate limited. Please try again in a moment.", fallback: true }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI_CREDITS_EXHAUSTED", message: "AI credits exhausted. Please add funds in Settings → Workspace → Usage.", fallback: true }),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
+    if (ordered.length === 0) {
       return new Response(
-        JSON.stringify({ error: "SERVICE_UNAVAILABLE", message: "AI service is temporarily unavailable.", fallback: true }),
+        JSON.stringify({ error: "NO_PROVIDER", message: "No AI providers are configured.", providers: availability() }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const data = await response.json();
-    let generatedCode = data.choices?.[0]?.message?.content || "";
+    const errors: { provider: string; error: string }[] = [];
+    for (const p of ordered) {
+      const key = Deno.env.get(p.envKey)!;
+      const useModel = (provider === p.id && model) ? model : p.defaultModel;
+      try {
+        const raw = await dispatch(p.id, key, useModel, SYSTEM_PROMPT, userMessage);
+        const code = stripFences(raw);
+        if (!code) throw new Error("empty response");
+        return new Response(
+          JSON.stringify({ code, provider: p.id, model: useModel, fallbacksTried: errors }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error(`[${p.id}] failed:`, msg);
+        errors.push({ provider: p.id, error: msg.slice(0, 200) });
+      }
+    }
 
-    // Strip markdown fences if present
-    generatedCode = generatedCode.replace(/^```html?\n?/i, "").replace(/\n?```$/i, "").trim();
-
-    return new Response(JSON.stringify({ code: generatedCode }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return new Response(
+      JSON.stringify({
+        error: "ALL_PROVIDERS_FAILED",
+        message: "All configured AI providers failed. Check API keys or quota.",
+        attempts: errors,
+        providers: availability(),
+      }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (e) {
     console.error("ai-code-gen error:", e);
     return new Response(
-      JSON.stringify({ error: "SERVICE_FAILED", message: e instanceof Error ? e.message : "Unknown error", fallback: true }),
+      JSON.stringify({ error: "SERVICE_FAILED", message: e instanceof Error ? e.message : "Unknown error" }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
