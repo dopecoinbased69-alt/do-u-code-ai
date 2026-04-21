@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { Code, Eye, Database, Upload, Download, FileCode, Layers, Cpu } from 'lucide-react';
+import { Code, Eye, Database, Upload, Download, FileCode, Layers, Cpu, Gamepad2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -10,6 +10,7 @@ const cards = [
   { to: '/ide', icon: Code, label: 'IDE', desc: 'AI-powered code editor with syntax highlighting', color: 'primary' },
   { to: '/preview', icon: Eye, label: 'Live Preview', desc: 'Real-time preview with iterational AI', color: 'accent' },
   { to: '/vault', icon: Database, label: 'Vault', desc: 'Persistent storage for your projects', color: 'primary' },
+  { to: '/game', icon: Gamepad2, label: '3D Game Template', desc: 'Mobile-ready R3F starter: touch sticks, bloom, DPR cap', color: 'accent' },
 ];
 
 export default function DashboardPage() {

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { LayoutDashboard, Code, Eye, Database, LogOut, Zap } from 'lucide-react';
+import { LayoutDashboard, Code, Eye, Database, LogOut, Zap, Gamepad2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const links = [
@@ -8,6 +8,7 @@ const links = [
   { to: '/ide', icon: Code, label: 'IDE' },
   { to: '/preview', icon: Eye, label: 'Preview' },
   { to: '/vault', icon: Database, label: 'Vault' },
+  { to: '/game', icon: Gamepad2, label: 'Game' },
 ];
 
 export default function AppSidebar() {
